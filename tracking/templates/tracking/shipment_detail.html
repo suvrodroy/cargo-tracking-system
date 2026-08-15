@@ -1,0 +1,39 @@
+{% extends 'tracking/base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-primary">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Tracking ID: {{ shipment.tracking_id }}</h5>
+                <small>{{ shipment.created_at|date:"M d, Y H:i" }}</small>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <h6 class="text-muted">Sender</h6>
+                        <p class="fs-5">{{ shipment.sender_name }}</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <h6 class="text-muted">Receiver</h6>
+                        <p class="fs-5">{{ shipment.receiver_name }}</p>
+                    </div>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-6">
+                        <h6 class="text-muted">Origin</h6>
+                        <p class="fs-5">{{ shipment.origin }}</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <h6 class="text-muted">Destination</h6>
+                        <p class="fs-5">{{ shipment.destination }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-light">
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">&larr; Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
