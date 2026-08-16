@@ -15,6 +15,9 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #fafafa;
+            /* Subtle dot grid pattern */
+            background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+            background-size: 24px 24px;
             color: #111827;
         }
         
@@ -89,7 +92,14 @@
 
 <nav class="navbar navbar-expand-lg py-3 mb-5">
     <div class="container">
-        <a class="navbar-brand fw-editorial fs-4 text-dark" href="{% url 'public_index' %}">CargoTrack.</a>
+        <a class="navbar-brand fw-editorial fs-4 text-dark d-flex align-items-center" href="{% url 'public_index' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="me-2" style="color: #111827;">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+            </svg>
+            CargoTrack.
+        </a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ms-auto align-items-center">
                 {% if user.is_authenticated %}
