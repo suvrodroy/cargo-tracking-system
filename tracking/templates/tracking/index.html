@@ -7,7 +7,8 @@
         
         <form action="{% url 'track_shipment' %}" method="GET" class="d-flex justify-content-center">
             <div class="input-group" style="max-width: 600px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-                <input type="text" name="tracking_id" class="form-control form-control-lg border-0 py-3 px-4 fs-5" placeholder="e.g., CRG-A1B2C3" required style="font-family: monospace; font-weight: 600;">
+                <!-- Added autofocus attribute below -->
+                <input type="text" name="tracking_id" class="form-control form-control-lg border-0 py-3 px-4 fs-5" placeholder="e.g., CRG-A1B2C3" required autofocus style="font-family: monospace; font-weight: 600;">
                 <button class="btn btn-dark-editorial px-5 fs-5" type="submit">Locate</button>
             </div>
         </form>
