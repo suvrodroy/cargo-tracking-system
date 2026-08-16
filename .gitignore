@@ -29,3 +29,8 @@ bin/
 .DS_Store
 
 .env
+# Python bytecode and cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
