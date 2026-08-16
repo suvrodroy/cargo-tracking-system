@@ -78,7 +78,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'cargo_db',       # Replace with your actual database name
         'USER': 'postgres',       # Replace with your actual postgres username
-        'PASSWORD': 'password',   # Replace with your actual postgres password
+        'PASSWORD': 'iamNOT@mature',   # Replace with your actual postgres password
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
@@ -132,3 +132,4 @@ MAILERS = {
 }
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGIN_URL = 'login'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
