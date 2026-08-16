@@ -10,7 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-o67fxdeqhb!lrr_ccrw$#&-#4ldm*k1y+!9+s8j*p(e!!*pz_q'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -78,7 +83,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'cargo_db',       # Replace with your actual database name
         'USER': 'postgres',       # Replace with your actual postgres username
-        'PASSWORD': 'password',   # Replace with your actual postgres password
+        'PASSWORD': os.getenv('DB_PASSWORD'),   # Replace with your actual postgres password
         'HOST': '127.0.0.1',
         'PORT': '5432',
     }
@@ -132,3 +137,4 @@ MAILERS = {
 }
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGIN_URL = 'login'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

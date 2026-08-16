@@ -1,40 +1,93 @@
 {% extends 'tracking/base.html' %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h2>My Shipments</h2>
-  <a href="{% url 'create_shipment' %}" class="btn btn-success">+ New Shipment</a>
+<!-- Oversized Stats Row -->
+<div class="row mb-5">
+    <div class="col-md-4">
+        <div class="text-muted-heavy mb-2">Total Shipments</div>
+        <div class="stat-huge text-dark">{{ total_shipments }}</div>
+    </div>
+    <div class="col-md-4">
+        <div class="text-muted-heavy mb-2">In Transit</div>
+        <div class="stat-huge" style="color: #3b82f6;">{{ in_transit_count }}</div>
+    </div>
+    <div class="col-md-4">
+        <div class="text-muted-heavy mb-2">Successfully Delivered</div>
+        <div class="stat-huge" style="color: #10b981;">{{ delivered_count }}</div>
+    </div>
 </div>
 
-<div class="card shadow-sm">
-  <div class="card-body p-0">
-    <table class="table table-hover mb-0">
-      <thead class="table-light">
-      <tr>
-        <th>Tracking ID</th>
-        <th>Sender</th>
-        <th>Receiver</th>
-        <th>Date Created</th>
-        <th>Action</th>
-      </tr>
-      </thead>
-      <tbody>
-      {% for shipment in shipments %}
-      <tr>
-        <td class="align-middle fw-bold">{{ shipment.tracking_id }}</td>
-        <td class="align-middle">{{ shipment.sender_name }}</td>
-        <td class="align-middle">{{ shipment.receiver_name }}</td>
-        <td class="align-middle">{{ shipment.created_at|date:"M d, Y" }}</td>
-        <td class="align-middle">
-          <a href="{% url 'shipment_detail' shipment.tracking_id %}" class="btn btn-sm btn-outline-primary">View</a>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="5" class="text-center py-4 text-muted">No shipments found. Click 'New Shipment' to get started.</td>
-      </tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  </div>
+<div class="row">
+    <!-- Active Shipments List -->
+    <div class="col-lg-8 pe-lg-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-editorial m-0">Active Logistics</h2>
+            <a href="{% url 'create_shipment' %}" class="btn btn-dark-editorial">+ New Manifest</a>
+        </div>
+        
+        <div class="card-clean p-0">
+            <table class="table table-borderless mb-0 align-middle">
+                <thead style="border-bottom: 2px solid #f3f4f6;">
+                    <tr>
+                        <th class="text-muted-heavy py-3 ps-4">Tracking ID</th>
+                        <th class="text-muted-heavy py-3">Route</th>
+                        <th class="text-muted-heavy py-3">Status</th>
+                        <th class="text-muted-heavy py-3 text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for shipment in shipments %}
+                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                        <td class="ps-4 py-3"><span style="font-family: monospace; font-weight: 600;">{{ shipment.tracking_id }}</span></td>
+                        <td class="py-3">
+                            <span class="fw-bold">{{ shipment.origin }}</span> &rarr; <span class="fw-bold">{{ shipment.destination }}</span>
+                        </td>
+                        <td class="py-3">
+                            {% if shipment.status == 'In Transit' %}
+                                <span class="status-dot bg-transit pulse-transit"></span> In Transit
+                            {% elif shipment.status == 'Delivered' %}
+                                <span class="status-dot bg-delivered"></span> Delivered
+                            {% elif shipment.status == 'Out for Delivery' %}
+                                <span class="status-dot bg-delivery"></span> Out for Delivery
+                            {% else %}
+                                <span class="status-dot bg-pending"></span> Pending
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4 py-3">
+                            <a href="{% url 'shipment_detail' shipment.tracking_id %}" class="text-decoration-none fw-bold" style="color: #111827;">View &rarr;</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">No active shipments found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Live Activity Feed -->
+    <div class="col-lg-4 mt-5 mt-lg-0">
+        <h3 class="fw-editorial mb-4">Live Activity</h3>
+        <div class="card-clean p-4">
+            {% if recent_updates %}
+                <div class="timeline-container m-0">
+                    {% for update in recent_updates %}
+                    <div class="timeline-item mb-4 pb-1">
+                        <div class="timeline-dot" style="background-color: #3b82f6; border-color: #eff6ff;"></div>
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <span class="fw-bold text-dark" style="font-family: monospace; font-size: 0.9rem;">{{ update.shipment.tracking_id }}</span>
+                            <small class="text-muted" style="font-size: 0.75rem;">{{ update.timestamp|timesince }} ago</small>
+                        </div>
+                        <div class="fw-bold fs-6">{{ update.update_message }}</div>
+                        <div class="text-muted small">&map; {{ update.location }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-muted small m-0">No recent activity across your logistics network.</p>
+            {% endif %}
+        </div>
+    </div>
 </div>
 {% endblock %}
