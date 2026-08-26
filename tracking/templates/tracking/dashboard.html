@@ -2,54 +2,110 @@
 {% block content %}
 <!-- Oversized Stats Row -->
 <div class="row mb-5">
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="text-muted-heavy mb-2">Total Shipments</div>
         <div class="stat-huge text-dark">{{ total_shipments }}</div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-3">
         <div class="text-muted-heavy mb-2">In Transit</div>
         <div class="stat-huge" style="color: #3b82f6;">{{ in_transit_count }}</div>
     </div>
-    <div class="col-md-4">
-        <div class="text-muted-heavy mb-2">Successfully Delivered</div>
+    <div class="col-md-3">
+        <div class="text-muted-heavy mb-2">Delivered</div>
         <div class="stat-huge" style="color: #10b981;">{{ delivered_count }}</div>
+    </div>
+    <div class="col-md-3">
+        <div class="text-muted-heavy mb-2">Urgent</div>
+        <div class="stat-huge" style="color: #ef4444;">{{ urgent_count }}</div>
     </div>
 </div>
 
 <div class="row">
     <!-- Active Shipments List -->
-    <div class="col-lg-8 pe-lg-5">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="col-lg-9 pe-lg-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="fw-editorial m-0">Active Logistics</h2>
             <a href="{% url 'create_shipment' %}" class="btn btn-dark-editorial">+ New Manifest</a>
         </div>
         
-        <div class="card-clean p-0">
-            <table class="table table-borderless mb-0 align-middle">
+        <!-- Search and Filter Form -->
+        <form method="GET" class="row mb-4 align-items-end">
+            <div class="col-md-4 mb-2 mb-md-0">
+                <label class="form-label text-muted-heavy">Search</label>
+                <input type="text" name="search" class="form-control" placeholder="Tracking ID, Receiver, Location..." value="{{ search_query|default_if_none:'' }}">
+            </div>
+            <div class="col-md-3 mb-2 mb-md-0">
+                <label class="form-label text-muted-heavy">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="Pending" {% if status_filter == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="In Transit" {% if status_filter == 'In Transit' %}selected{% endif %}>In Transit</option>
+                    <option value="Out for Delivery" {% if status_filter == 'Out for Delivery' %}selected{% endif %}>Out for Delivery</option>
+                    <option value="Delivered" {% if status_filter == 'Delivered' %}selected{% endif %}>Delivered</option>
+                </select>
+            </div>
+            <div class="col-md-3 mb-2 mb-md-0">
+                <label class="form-label text-muted-heavy">Priority</label>
+                <select name="priority" class="form-select">
+                    <option value="">All Priorities</option>
+                    <option value="Standard" {% if priority_filter == 'Standard' %}selected{% endif %}>Standard</option>
+                    <option value="Express" {% if priority_filter == 'Express' %}selected{% endif %}>Express</option>
+                    <option value="Urgent" {% if priority_filter == 'Urgent' %}selected{% endif %}>Urgent</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-dark-editorial w-100">Filter</button>
+            </div>
+        </form>
+        
+        <div class="card-clean p-0 overflow-auto">
+            <table class="table table-borderless mb-0 align-middle" style="min-width: 800px;">
                 <thead style="border-bottom: 2px solid #f3f4f6;">
                     <tr>
                         <th class="text-muted-heavy py-3 ps-4">Tracking ID</th>
-                        <th class="text-muted-heavy py-3">Route</th>
-                        <th class="text-muted-heavy py-3">Status</th>
+                        <th class="text-muted-heavy py-3">Route & Location</th>
+                        <th class="text-muted-heavy py-3" style="width: 15%;">Status</th>
+                        <th class="text-muted-heavy py-3">Priority</th>
+                        <th class="text-muted-heavy py-3">Est. Delivery</th>
                         <th class="text-muted-heavy py-3 text-end pe-4">Action</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for shipment in shipments %}
-                    <tr style="border-bottom: 1px solid #f3f4f6;">
+                    <tr style="border-bottom: 1px solid #f3f4f6; {% if shipment.priority == 'Urgent' %}background-color: #fef2f2;{% endif %}">
                         <td class="ps-4 py-3"><span style="font-family: monospace; font-weight: 600;">{{ shipment.tracking_id }}</span></td>
                         <td class="py-3">
-                            <span class="fw-bold">{{ shipment.origin }}</span> &rarr; <span class="fw-bold">{{ shipment.destination }}</span>
+                            <div class="mb-1"><span class="fw-bold">{{ shipment.origin }}</span> &rarr; <span class="fw-bold">{{ shipment.destination }}</span></div>
+                            <small class="text-muted">&map; {{ shipment.current_location }}</small>
                         </td>
                         <td class="py-3">
-                            {% if shipment.status == 'In Transit' %}
-                                <span class="status-dot bg-transit pulse-transit"></span> In Transit
-                            {% elif shipment.status == 'Delivered' %}
-                                <span class="status-dot bg-delivered"></span> Delivered
-                            {% elif shipment.status == 'Out for Delivery' %}
-                                <span class="status-dot bg-delivery"></span> Out for Delivery
+                            <div class="progress mb-1" style="height: 6px;">
+                                {% if shipment.status == 'Pending' %}
+                                    <div class="progress-bar bg-secondary" role="progressbar" style="width: 25%"></div>
+                                {% elif shipment.status == 'In Transit' %}
+                                    <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated pulse-transit" role="progressbar" style="width: 50%"></div>
+                                {% elif shipment.status == 'Out for Delivery' %}
+                                    <div class="progress-bar bg-warning progress-bar-striped progress-bar-animated" role="progressbar" style="width: 75%"></div>
+                                {% elif shipment.status == 'Delivered' %}
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 100%"></div>
+                                {% endif %}
+                            </div>
+                            <small class="fw-bold text-dark">{{ shipment.status }}</small>
+                        </td>
+                        <td class="py-3">
+                            {% if shipment.priority == 'Urgent' %}
+                                <span class="badge bg-danger">Urgent</span>
+                            {% elif shipment.priority == 'Express' %}
+                                <span class="badge bg-warning text-dark">Express</span>
                             {% else %}
-                                <span class="status-dot bg-pending"></span> Pending
+                                <span class="badge bg-secondary">Standard</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 text-muted">
+                            {% if shipment.estimated_delivery_date %}
+                                {{ shipment.estimated_delivery_date|date:"M d, Y" }}
+                            {% else %}
+                                -
                             {% endif %}
                         </td>
                         <td class="text-end pe-4 py-3">
@@ -58,7 +114,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="4" class="text-center py-5 text-muted">No active shipments found.</td>
+                        <td colspan="6" class="text-center py-5 text-muted">No active shipments match your criteria.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -67,7 +123,7 @@
     </div>
 
     <!-- Live Activity Feed -->
-    <div class="col-lg-4 mt-5 mt-lg-0">
+    <div class="col-lg-3 mt-5 mt-lg-0">
         <h3 class="fw-editorial mb-4">Live Activity</h3>
         <div class="card-clean p-4">
             {% if recent_updates %}
@@ -77,10 +133,10 @@
                         <div class="timeline-dot" style="background-color: #3b82f6; border-color: #eff6ff;"></div>
                         <div class="d-flex justify-content-between align-items-start mb-1">
                             <span class="fw-bold text-dark" style="font-family: monospace; font-size: 0.9rem;">{{ update.shipment.tracking_id }}</span>
-                            <small class="text-muted" style="font-size: 0.75rem;">{{ update.timestamp|timesince }} ago</small>
                         </div>
-                        <div class="fw-bold fs-6">{{ update.update_message }}</div>
-                        <div class="text-muted small">&map; {{ update.location }}</div>
+                        <div class="fw-bold fs-6 mb-1">{{ update.update_message }}</div>
+                        <div class="text-muted small mb-1">&map; {{ update.location }}</div>
+                        <small class="text-muted" style="font-size: 0.75rem;">{{ update.timestamp|timesince }} ago</small>
                     </div>
                     {% endfor %}
                 </div>

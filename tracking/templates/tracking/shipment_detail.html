@@ -1,5 +1,8 @@
 {% extends 'tracking/base.html' %}
 {% block content %}
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <div class="row justify-content-center">
     <div class="col-md-8">
         
@@ -32,7 +35,7 @@
                 </div>
             </div>
 
-            <div class="row mb-5">
+            <div class="row mb-4">
                 <div class="col-6">
                     <div class="text-muted-heavy mb-1">Origin</div>
                     <div class="fs-4 fw-bold">{{ shipment.origin }}</div>
@@ -45,26 +48,62 @@
                 </div>
             </div>
 
-            <h3 class="fw-editorial mb-4">Transit History</h3>
-            <div class="card-clean p-4 p-md-5">
-                {% if shipment.updates.all %}
-                    <div class="timeline-container m-0">
-                        {% for update in shipment.updates.all %}
-                        <div class="timeline-item {% if forloop.last %}mb-0{% endif %}">
-                            <div class="timeline-dot" {% if forloop.first %}style="background-color: #3b82f6; border-color: #eff6ff;"{% endif %}></div>
-                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-1">
-                                <span class="fw-bold fs-5">{{ update.update_message }}</span>
-                                <span class="text-muted small mt-1 mt-md-0">{{ update.timestamp|date:"M d, Y, h:i A" }}</span>
+            {% if shipment.current_coordinates %}
+            <!-- Interactive Map -->
+            <div class="card-clean p-0 mb-5 overflow-hidden" style="border-radius: 12px; border: 2px solid #e5e7eb;">
+                <div id="shipment-map" style="height: 350px; width: 100%; z-index: 1;"></div>
+            </div>
+            {% endif %}
+
+            <div class="row">
+                <!-- Transit History -->
+                <div class="col-lg-7 mb-4">
+                    <h3 class="fw-editorial mb-4">Transit History</h3>
+                    <div class="card-clean p-4 p-md-5">
+                        {% if shipment.updates.all %}
+                            <div class="timeline-container m-0">
+                                {% for update in shipment.updates.all %}
+                                <div class="timeline-item {% if forloop.last %}mb-0{% endif %}">
+                                    <div class="timeline-dot" {% if forloop.first %}style="background-color: #3b82f6; border-color: #eff6ff;"{% endif %}></div>
+                                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-1">
+                                        <span class="fw-bold fs-5">{{ update.update_message }}</span>
+                                        <span class="text-muted small mt-1 mt-md-0">{{ update.timestamp|date:"M d, Y, h:i A" }}</span>
+                                    </div>
+                                    <div class="text-muted">&map; {{ update.location }}</div>
+                                </div>
+                                {% endfor %}
                             </div>
-                            <div class="text-muted">&map; {{ update.location }}</div>
-                        </div>
-                        {% endfor %}
+                        {% else %}
+                            <div class="text-center py-4 text-muted">
+                                No transit updates have been logged for this shipment yet.
+                            </div>
+                        {% endif %}
                     </div>
-                {% else %}
-                    <div class="text-center py-4 text-muted">
-                        No transit updates have been logged for this shipment yet.
+                </div>
+
+                <!-- Update Form -->
+                <div class="col-lg-5">
+                    <h3 class="fw-editorial mb-4">Log Update</h3>
+                    <div class="card-clean p-4" style="background-color: #f8fafc;">
+                        <form method="POST">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted-heavy">New Status</label>
+                                {{ form.status }}
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-muted-heavy">Location</label>
+                                {{ form.location }}
+                                <small class="text-muted">e.g. Dhaka, Bangladesh</small>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-bold text-muted-heavy">Update Message</label>
+                                {{ form.update_message }}
+                            </div>
+                            <button type="submit" class="btn btn-dark-editorial w-100">Post Update</button>
+                        </form>
                     </div>
-                {% endif %}
+                </div>
             </div>
             
             <div class="mt-4">
@@ -74,4 +113,48 @@
         
     </div>
 </div>
+
+{% if shipment and shipment.current_coordinates %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Initialize Map centered on the shipment's current coordinates
+        const lat = {{ shipment.current_coordinates.lat }};
+        const lng = {{ shipment.current_coordinates.lng }};
+        
+        const map = L.map('shipment-map').setView([lat, lng], 10); 
+        
+        // Load standard OpenStreetMap Raster Tiles (this fixes the grey/unloaded map issue!)
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Draw marker
+        let color = '#9ca3af'; 
+        if ("{{ shipment.status }}" === 'In Transit') color = '#3b82f6';
+        if ("{{ shipment.status }}" === 'Out for Delivery') color = '#f59e0b';
+        if ("{{ shipment.status }}" === 'Delivered') color = '#10b981';
+        
+        const marker = L.circleMarker([lat, lng], {
+            radius: 10,
+            fillColor: color,
+            color: "#fff",
+            weight: 3,
+            opacity: 1,
+            fillOpacity: 1
+        }).addTo(map);
+
+        // Bind a sleek hover tooltip instead of a click popup
+        marker.bindTooltip(
+            `<b>{{ shipment.tracking_id }}</b><br>{{ shipment.current_location }}<br>{{ shipment.status }}`,
+            {
+                direction: 'top',
+                offset: [0, -10],
+                opacity: 0.95,
+                className: 'shadow-sm border-0 rounded p-2'
+            }
+        );
+    });
+</script>
+{% endif %}
 {% endblock %}

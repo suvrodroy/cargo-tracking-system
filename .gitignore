@@ -34,3 +34,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Antigravity MCP configs and secrets
+.agents/mcp_config.json
+.agents/*.env
